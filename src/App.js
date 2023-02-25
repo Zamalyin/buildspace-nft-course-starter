@@ -11,6 +11,8 @@ const TWITTER_LINK = `https://twitter.com/${TWITTER_HANDLE}`;
 const OPENSEA_LINK = '';
 const TOTAL_MINT_COUNT = 50;
 
+const CONTRACT_ADDRESS = "0xc070719607B318D46392fEfE5fe80fc09e3b4bFD";
+
 const App = () => {
   /*
   * Just a state variable we use to store our user's public wallet.
@@ -40,6 +42,7 @@ const App = () => {
       const account = accounts[0];
       console.log("Found an authorized account:", account);
       setCurrentAccount(account);
+      setupEventListener();
     } else {
       console.log("No authorized account found");
     }
@@ -58,14 +61,39 @@ const App = () => {
 
       console.log("Connected", accounts[0]);
       setCurrentAccount(accounts[0]);
+
+      // Setup listener!
+      setupEventListener();
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  // Setup our listener.
+  const setupEventListener = async () => {
+    try {
+      const { ethereum } = window;
+
+      if(ethereum) {
+        const provider = new ethers.providers.Web3Provider(ethereum);
+        const signer = provider.getSigner();
+        const connectedContract = new ethers.Contract(CONTRACT_ADDRESS, myEpicNft.abi, signer);
+
+        connectedContract.on("NewEpicNFTMinted", (from, tokenId) => {
+          console.log(from, tokenId.toNumber());
+          alert(`Hey there! We've minted your NFT. It has the id: ${tokenId.toNumber()}. View it on OpenSea.`);
+        });
+
+        console.log("Setup event listener!");
+      } else {
+        console.log("Ethereum object doesn't exist!");
+      }
     } catch (error) {
       console.log(error);
     }
   };
 
   const askContractToMintNft = async() => {
-    const CONTRACT_ADDRESS = "0xb99765877b65C8Bb3653f00DABdb4c22b380c5fb";
-
     try {
       const { ethereum } = window;
 
